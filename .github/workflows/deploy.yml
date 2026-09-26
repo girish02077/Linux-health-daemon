@@ -1,0 +1,28 @@
+name: Deploy Health Daemon
+
+on:
+push:
+branches: [ "main", "master" ]
+
+jobs:
+deploy:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout Repository
+   uses: actions/checkout@v4
+
+ - name: Run Local Syntax Validation Test
+    run: ./tests/validate.sh
+
+- name: Set up SSH Key
+  uses: webfactory/ssh-agent@v0.9.0
+  with:
+ ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+ - name: Copy Scripts to Server
+run: |
+ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/health-daemon/scripts"
+scp -o StrictHostKeyChecking=no scripts/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/health-daemon/scripts/
+
+- name: Execute Remote Audit Test
+ run: |
+ ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x ~/health-daemon/scripts/health-check.sh && ~/health-daemon/scripts/health-check.sh"
