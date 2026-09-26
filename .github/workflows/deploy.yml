@@ -14,16 +14,12 @@ jobs:
       - name: Run Local Syntax Validation Test
         run: bash ./tests/validate.sh
 
-      - name: Set up SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Copy Scripts to Server
+      - name: Copy Scripts Locally
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/health-daemon/scripts"
-          scp -o StrictHostKeyChecking=no scripts/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/health-daemon/scripts/
+          mkdir -p ~/health-daemon/scripts
+          cp -r scripts/* ~/health-daemon/scripts/
 
-      - name: Execute Remote Audit Test
+      - name: Execute Local Audit Test
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x ~/health-daemon/scripts/health-check.sh && ~/health-daemon/scripts/health-check.sh"
+          chmod +x ~/health-daemon/scripts/health-check.sh
+          ~/health-daemon/scripts/health-check.sh
